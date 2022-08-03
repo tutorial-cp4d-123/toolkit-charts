@@ -1,0 +1,28 @@
+{{- if eq (include "ocp-route.isOpenShift" .) "true" -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "ocp-route.name" . }}
+  labels:
+    app: {{ default (include "ocp-route.name" .) .Values.app }}
+    console-link.cloud-native-toolkit.dev/enabled: {{ .Values.consoleLink.enabled | quote }}
+  {{- if .Values.consoleLink.enabled }}
+  annotations:
+    console-link.cloud-native-toolkit.dev/enabled: {{ .Values.consoleLink.enabled | quote }}
+    console-link.cloud-native-toolkit.dev/section: {{ .Values.consoleLink.section | quote }}
+    console-link.cloud-native-toolkit.dev/imageUrl: {{ .Values.consoleLink.imageUrl | quote }}
+    console-link.cloud-native-toolkit.dev/displayName: {{ .Values.consoleLink.displayName | quote }}
+    console-link.cloud-native-toolkit.dev/category: {{ .Values.consoleLink.category | quote }}
+  {{- end }}
+spec:
+  to:
+    kind: Service
+    name: {{ default (include "ocp-route.name" .) .Values.serviceName }}
+    weight: 100
+  port:
+    targetPort: {{ required "targetPort is requried" .Values.targetPort }}
+  tls:
+    termination: {{ .Values.termination }}
+    insecureEdgeTerminationPolicy: {{ .Values.insecurePolicy }}
+  wildcardPolicy: None
+{{- end -}}

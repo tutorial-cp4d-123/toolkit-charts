@@ -1,0 +1,87 @@
+global:
+  ## List of destinations (server and namespace) that should be added to the project
+  ## to allow deployments. Will be provided in addition to those listed in the
+  ## application targets.
+  destinations: []
+  #  - server: https://kubernetes.default.svc
+  #    targetNamespace: test
+
+  ## The url of the gitops repo that contains the applications
+  repoUrl: ""
+
+  ## The targetNamespace to use if one is not provided for the application
+  targetNamespace: ""
+
+  ## The targetRevision to use if one is not provided for the application
+  targetRevision: ""
+
+  ## Provides a suffix value (usually a path) that should be added to each path
+  pathSuffix: ""
+
+  ## Prefix that should be added to bootstrap, application, and project names
+  prefix: ""
+
+  ## Label applied to all the application resources
+  groupLabel: ""
+
+## Flag indicating that the applications should be configured to perform a cascading delete (i.e. configured with finalizer)
+cascadingDelete: true
+
+## The url of the gitops repo that contains the applications
+repoUrl: ""
+
+## List of destinations (server and namespace) that should be added to the project
+## to allow deployments. Will be provided in addition to those listed in the
+## application targets.
+destinations: []
+
+## The name of the project. If left empty then will use 'default'
+project: ""
+
+## Prefix that should be added to bootstrap, application, and project names
+prefix: ""
+
+## Label applied to all the application resources
+groupLabel: ""
+
+## The cluster resources that should be whitelisted in the project
+clusterResourceWhitelist: []
+# - group: ""
+#   kind: ""
+
+## Lists the target environments and the names of the applications that should be created.
+## The helm chart will loop over each `applicationTarget` and create an application for
+## each `applicationName` (i.e. if there are 2 application targets each having 3 application
+## names then 6 applications will be created)
+applicationTargets: []
+# - targetRevision: ""
+#   targetNamespace: ""
+#   createNamespace: true
+#   server: "" (optional)
+#   valueFiles: (optional)
+#   - values.yaml
+#   applications:
+#   - app1
+#   - name: app1
+#   - name: app1
+#     type: helm
+#   - name: app1
+#     type: helm
+#     path: app1
+#     pathSuffix: test
+#   - name: app2
+#     type: directory
+#   - name: app3
+#     type: plugin
+#     plugin: plugin-name
+#   - name: app4
+#     type: kustomize
+#     path: app4/overlay
+#     syncWave: "" (optional)
+
+## Flag indicating that roles should be created for the
+## argocd-application-controller service account in the
+## target namespaces. Not sure why this is necessary...
+controllerRbac: false
+
+clusterType: ""

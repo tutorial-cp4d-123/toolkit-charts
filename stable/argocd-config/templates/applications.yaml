@@ -1,0 +1,82 @@
+{{- if include "argocd.repoUrl" . -}}
+{{- $globalNamespace := .Values.global.targetNamespace -}}
+{{- $globalRevision := .Values.global.targetRevision -}}
+{{- $globalPathSuffix := .Values.global.pathSuffix -}}
+{{- $releaseNamespace := .Release.Namespace -}}
+{{- $targetRepo := include "argocd.repoUrl" . -}}
+{{- $prefix := include "argocd.prefix" . -}}
+{{- $project := default "default" (include "argocd.project" .) -}}
+{{- $labels := include "argocd.labels" . -}}
+{{- $cascadingDelete := .Values.cascadingDelete -}}
+{{- range .Values.applicationTargets }}
+{{- $targetNamespace := default $globalNamespace .targetNamespace -}}
+{{- $targetRevision := default $globalRevision .targetRevision -}}
+{{- $server := default "https://kubernetes.default.svc" .server | quote -}}
+{{- $valueFile := include "argocd.valueFiles" .valueFiles -}}
+{{- $createNamespace := .createNamespace }}
+{{- range .applications -}}
+{{- $name := printf "%s%s" $prefix .name -}}
+{{- $path := default .name .path -}}
+{{- $pathSuffix := default $globalPathSuffix .pathSuffix -}}
+{{- $type := default "" .type -}}
+{{- $plugin := .plugin }}
+{{- if $createNamespace }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $targetNamespace }}
+{{- end }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- if or (eq $targetRevision "main") (eq $targetRevision "master") }}
+  name: {{ $name }}
+  {{- else }}
+  name: {{ printf "%s-%s" (lower $targetRevision | replace "_" "-") $name }}
+  {{- end }}
+  namespace: {{ $releaseNamespace }}
+  labels:
+{{ $labels  | indent 4 }}
+{{- if .syncWave }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .syncWave | quote }}
+{{- end }}
+  {{- if $cascadingDelete }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  {{- end }}
+spec:
+  destination:
+    namespace: {{ $targetNamespace }}
+    server: {{ $server }}
+  project: {{ $project }}
+  source:
+    {{- if $pathSuffix }}
+    path: {{ printf "%s/%s" $path $pathSuffix }}
+    {{- else }}
+    path: {{ $path }}
+    {{- end }}
+    repoURL: {{ $targetRepo }}
+    targetRevision: {{ $targetRevision }}
+    {{- if eq $type "helm" }}
+    helm:
+      valueFiles:
+        {{- $valueFile | nindent 8 }}
+    {{- end }}
+    {{- if eq $type "plugin" }}
+    plugin:
+      name: {{ $plugin }}
+    {{- end }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    {{- if $createNamespace }}
+    syncOptions:
+      - CreateNamespace=true
+    {{- end }}
+---
+{{- end }}
+{{- end }}
+{{- end -}}

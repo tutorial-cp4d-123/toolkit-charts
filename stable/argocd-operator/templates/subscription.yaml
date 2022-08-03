@@ -1,0 +1,13 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: argocd-operator
+  namespace: {{ include "operator.operator-namespace" . }}
+  labels:
+    {{- include "operator.labels" . | nindent 4 }}
+spec:
+  channel: {{ include "operator.channel" . }}
+  installPlanApproval: Automatic
+  name: {{ include "operator.catalog-name" . }}
+  source: {{ include "operator.source" . }}
+  sourceNamespace: {{ include "operator.olm-namespace" . }}

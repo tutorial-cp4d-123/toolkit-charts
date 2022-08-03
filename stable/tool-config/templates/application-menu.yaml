@@ -1,0 +1,15 @@
+{{- if and (and (include "tool-config.imageUrl" .) .Values.applicationMenu) (or (eq .Values.global.clusterType "") (eq .Values.global.clusterType "ocp4")) }}
+apiVersion: console.openshift.io/v1
+kind: ConsoleLink
+metadata:
+  name: {{ printf "toolkit-%s" (include "tool-config.name" .) }}
+  labels:
+{{ include "tool-config.labels" . | indent 4 }}
+spec:
+  applicationMenu:
+    imageURL: {{ include "tool-config.imageUrl" . | quote }}
+    section: {{ .Values.section | quote }}
+  href: {{ include "tool-config.url" . | quote }}
+  location: {{ include "tool-config.location" . }}
+  text: {{ include "tool-config.display-name" . }}
+{{- end }}

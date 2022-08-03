@@ -1,0 +1,14 @@
+{{- if and (eq (include "operator.cluster-type" .) "ocp4") .Values.createInstance }}
+{{- $namespace := default "openshift-operators" .Values.namespaceInstance -}}
+apiVersion: logging.openshift.io/v1
+kind: Elasticsearch
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "200"
+    helm.sh/hook-weight: "200"
+  name: elasticsearch
+  namespace: {{ $namespace }}
+spec:
+{{ .Values.spec | toYaml | indent 2 }}
+{{- end -}}

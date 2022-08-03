@@ -1,0 +1,20 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    {{- if .Values.hook.enabled }}
+    argocd.argoproj.io/hook: {{ .Values.hook.hooktype }}
+    {{- end }}
+    {{- if .Values.hookdeletepolicy.enabled }}
+    argocd.argoproj.io/hook-delete-policy: {{ .Values.hookdeletepolicy.hookdeletepolicytype }}
+    {{- end }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.serviceaccount }}
+    namespace: {{ .Values.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Values.name }}

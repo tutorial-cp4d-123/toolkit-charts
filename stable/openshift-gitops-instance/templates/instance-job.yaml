@@ -1,0 +1,52 @@
+{{- if eq .Release.Namespace "openshift-gitops" }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: job-{{ include "openshift-gitops-instance.name" . }}
+  labels:
+    {{- include "openshift-gitops-instance.labels" . | nindent 4 }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-{{ include "openshift-gitops-instance.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "openshift-gitops-instance.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      name: job-{{ include "openshift-gitops-instance.name" . }}
+      labels:
+        {{- include "openshift-gitops-instance.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: job-{{ include "openshift-gitops-instance.name" . }}
+      restartPolicy: Never
+      volumes:
+        - name: config-yaml
+          configMap:
+            name: config-{{ include "openshift-gitops-instance.name" . }}
+            defaultMode: 0777
+      containers:
+        - name: create-instance
+          image: {{ printf "docker.io/bitnami/kubectl:%s" .Chart.AppVersion }}
+          volumeMounts:
+            - mountPath: /config
+              name: config-yaml
+          env:
+            - name: NAMESPACE
+              value: openshift-gitops
+            - name: INSTANCE_NAME
+              value: {{ include "openshift-gitops-instance.argocd-name" . }}
+            - name: CONFIG_FILE
+              value: /config/instance.yaml
+            - name: PATCH_FILE
+              value: /config/patch.yaml
+          command:
+            - /config/apply.sh
+{{- end -}}

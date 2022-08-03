@@ -1,0 +1,16 @@
+# Default values for service-account.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+global:
+  clusterType: "openshift"
+
+name: ""
+
+create: true
+clusterType: ""
+sccs: []
+roles: []
+
+#  - apiGroups: []
+#    resources: []
+#    verbs: []

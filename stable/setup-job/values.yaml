@@ -1,0 +1,11 @@
+# Default values for setup-job.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+name: ""
+serviceAccountName: "default"
+command: ""
+secret:
+  name: ""
+  key: ""
+cliVersion: "0.3.3"

@@ -1,0 +1,28 @@
+{{ $globalDestinations := include "argocd.destinations" .Values.global.destinations  }}
+{{ $localDestinations := include "argocd.destinations" .Values.destinations  }}
+{{ $appDestinations := include "argocd.destinations" .Values.applicationTargets  }}
+{{- if .Values.project }}
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ include "argocd.project" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "argocd.labels" . | indent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-5"
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  sourceRepos:
+    - {{ include "argocd.repoUrl" . }}
+  {{- if .Values.clusterResourceWhitelist }}
+  clusterResourceWhitelist:
+    {{- .Values.clusterResourceWhitelist | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if or (or $globalDestinations $localDestinations) $appDestinations }}
+  destinations:
+  {{- $globalDestinations | nindent 4 -}}
+  {{- $localDestinations | nindent 4 -}}
+  {{- $appDestinations | nindent 4 -}}
+  {{- end }}
+{{- end }}

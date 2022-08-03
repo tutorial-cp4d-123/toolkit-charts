@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "ibm-portworx.fullname" . }}
+  namespace: {{ include "ibm-portworx.namespace" . }}
+  labels:
+    {{- include "ibm-portworx.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-5"
+    helm.sh/hook-weight: "-5"
+spec:
+  selector:
+    matchLabels:
+      {{- include "ibm-portworx.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ibm-portworx.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "ibm-portworx.serviceAccountName" . }}
+      terminationGracePeriodSeconds: 60
+      volumes:
+        - name: scripts
+          configMap:
+            name: {{ include "ibm-portworx.fullname" . }}
+            defaultMode: 0777
+      initContainers:
+        - name: volume-init
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Release.Revision }}
+          volumeMounts:
+            - mountPath: /scripts
+              name: scripts
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: RESOURCE_GROUP_ID
+              value: {{ required "resourceGroupId value is required!" .Values.resourceGroupId }}
+            - name: IBMCLOUD_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ibm-portworx.operator-secret" . }}
+                  key: api-key
+            - name: IOPS
+              value: {{ .Values.volume.iops | quote }}
+            - name: CAPACITY
+              value: {{ .Values.volume.capacity | quote }}
+            - name: PROFILE
+              value: {{ .Values.volume.profile | quote }}
+            - name: ENCRYPTION_KEY
+              value: {{ .Values.volume.encryption_key | quote }}
+            - name: VOLUME_SUFFIX
+              value: {{ .Values.volumeSuffix | quote }}
+          command:
+            - /bin/sh
+          args:
+            - -c
+            - /scripts/volume-create.sh $NODE_NAME $RESOURCE_GROUP_ID
+      containers:
+        - name: volume-attach
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Release.Revision }}
+          volumeMounts:
+            - mountPath: /scripts
+              name: scripts
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: RESOURCE_GROUP_ID
+              value: {{ required "resourceGroupId value is required!" .Values.resourceGroupId }}
+            - name: IBMCLOUD_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ibm-portworx.operator-secret" . }}
+                  key: api-key
+            - name: VOLUME_SUFFIX
+              value: {{ .Values.volumeSuffix | quote }}
+          command:
+            - /scripts/volume-manage.sh

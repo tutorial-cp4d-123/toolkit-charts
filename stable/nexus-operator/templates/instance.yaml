@@ -1,0 +1,20 @@
+apiVersion: apps.m88i.io/v1alpha1
+kind: Nexus
+metadata:
+  name: {{ include "operator.name" . }}
+spec:
+  networking:
+    expose: false
+  persistence:
+    persistent: true
+    volumeSize: 10Gi
+  replicas: 1
+  resources:
+    limits:
+      cpu: '2'
+      memory: 2Gi
+    requests:
+      cpu: '1'
+      memory: 2Gi
+  useRedHatImage: {{ include "nexus-operator.useRedHatImage" . }}
+  serviceAccountName: {{ required "serviceAccount must be provided" .Values.serviceAccount }}

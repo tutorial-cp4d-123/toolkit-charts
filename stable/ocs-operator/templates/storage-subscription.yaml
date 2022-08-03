@@ -1,0 +1,15 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: ocs-operator
+  labels:
+    operators.coreos.com/ocs-operator.openshift-storage: ""
+  annotations:
+    argocd.argoproj.io/sync-wave: "102"
+    helm.sh/hook-weight: "102"
+spec:
+  channel: {{ .Values.channel }}
+  installPlanApproval: Automatic
+  name: ocs-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace

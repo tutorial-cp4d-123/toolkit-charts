@@ -1,0 +1,32 @@
+{{- if eq .Release.Namespace "openshift-gitops" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-{{ include "openshift-gitops-instance.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "openshift-gitops-instance.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install
+data:
+  instance.yaml: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: ArgoCD
+    metadata:
+      name: {{ include "openshift-gitops-instance.argocd-name" . }}
+      labels:
+        {{- include "openshift-gitops-instance.labels" . | nindent 8 }}
+    spec:
+      {{- .Values.openshiftgitops.argocd.spec | toYaml | nindent 6 }}
+  patch.yaml: |
+    spec:
+      {{- .Values.openshiftgitops.argocd.spec | toYaml | nindent 6 }}
+  apply.sh: |
+    #!/bin/bash
+
+    if oc get argocd $INSTANCE_NAME -n $NAMESPACE 1> /dev/null 2> /dev/null; then
+      kubectl patch argocd $INSTANCE_NAME -n $NAMESPACE --type merge -p "$(cat $PATCH_FILE)"
+    else
+      kubectl apply -n $NAMESPACE -f $CONFIG_FILE
+    fi
+{{- end -}}

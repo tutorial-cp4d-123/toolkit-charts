@@ -1,0 +1,25 @@
+# Default values for argocd-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+global:
+  ingressSubdomain: ""
+  tlsSecretName: ""
+  clusterType: ""
+
+nameOverride: ""
+
+olmNamespace: ""
+operatorNamespace: ""
+
+clusterType: ""
+
+ocpCatalog:
+  source: community-operators
+  channel: stable
+  name: ibmcloud-operator
+operatorHub:
+  source: operatorhubio-catalog
+  channel: stable
+  name: ibmcloud-operator
+
+configNamespace: ""

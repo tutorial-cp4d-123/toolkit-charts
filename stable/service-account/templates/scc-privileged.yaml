@@ -1,0 +1,57 @@
+{{- if eq (include "service-account.isOpenShift" .) "true" -}}
+{{ $namespace := .Release.Namespace }}
+{{ $serviceAccount := include "service-account.name" . }}
+{{ $saName := printf "system:serviceaccount:%s:%s" $namespace $serviceAccount }}
+{{ $labels := include "service-account.labels" . }}
+{{- range .Values.sccs }}
+{{- if eq "privileged" . }}
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "-3"
+    argocd.argoproj.io/sync-options: Validate=false
+    kubernetes.io/description: 'privileged allows access to all privileged and host
+      features and the ability to run as any user, any group, any fsGroup, and with
+      any SELinux context.  WARNING: this is the most relaxed SCC and should be used
+      only for cluster administration. Grant with caution.'
+  name: {{ printf "%s-%s-%s" $namespace $serviceAccount . }}
+  labels:
+{{- $labels | nindent 4 }}
+allowHostDirVolumePlugin: true
+allowHostIPC: true
+allowHostNetwork: true
+allowHostPID: true
+allowHostPorts: true
+allowPrivilegeEscalation: true
+allowPrivilegedContainer: true
+allowedCapabilities:
+  - '*'
+allowedUnsafeSysctls:
+  - '*'
+defaultAddCapabilities: null
+fsGroup:
+  type: RunAsAny
+groups:
+  - system:cluster-admins
+  - system:nodes
+  - system:masters
+priority: null
+readOnlyRootFilesystem: false
+requiredDropCapabilities: null
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: RunAsAny
+seccompProfiles:
+  - '*'
+supplementalGroups:
+  type: RunAsAny
+users:
+  - {{ $saName }}
+volumes:
+  - '*'
+{{- end }}
+{{- end }}
+{{- end }}

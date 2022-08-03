@@ -1,0 +1,26 @@
+{{- $clusterType := include "developer-dashboard.clusterType" . -}}
+{{- if (eq $clusterType "openshift") }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ .Values.host }}
+  labels:
+    app: {{ include "developer-dashboard.name" . }}
+    console-link.cloud-native-toolkit.dev/enabled: {{ .Values.consoleLink.enabled | quote }}
+  {{- if .Values.consoleLink.enabled }}
+  annotations:
+    console-link.cloud-native-toolkit.dev/enabled: {{ .Values.consoleLink.enabled | quote }}
+    console-link.cloud-native-toolkit.dev/section: {{ .Values.consoleLink.section }}
+    console-link.cloud-native-toolkit.dev/imageUrl: {{ .Values.consoleLink.imageUrl }}
+    console-link.cloud-native-toolkit.dev/displayName: {{ .Values.consoleLink.displayName }}
+    console-link.cloud-native-toolkit.dev/category: dashboard
+  {{- end }}
+spec:
+  port:
+    targetPort: {{ include "developer-dashboard.route-port" . }}
+  to:
+    kind: Service
+    name: {{ include "developer-dashboard.fullname" . }}
+  tls:
+    termination: {{ include "developer-dashboard.route-termination" . }}
+{{- end }}

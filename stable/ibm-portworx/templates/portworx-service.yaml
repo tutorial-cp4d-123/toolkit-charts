@@ -1,0 +1,42 @@
+apiVersion: ibmcloud.ibm.com/v1
+kind: Service
+metadata:
+  name: {{ include "ibm-portworx.service-name" . }}
+  namespace: {{ include "ibm-portworx.namespace" . }}
+  labels:
+    {{- include "ibm-portworx.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+    helm.sh/hook-weight: "-1"
+spec:
+  plan: {{ .Values.plan }}
+  serviceClass: portworx
+  parameters:
+    - name: clusters
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.clusterConfigSecretName }}
+          key: clusterId
+    - name: portworx-version
+      value: "Portworx: 2.10.2, Stork: 2.9.0"
+    - name: secret_type
+      value: k8s
+    - name: internal_kvdb
+      value: {{ include "ibm-portworx.internal_kvdb" . }}
+    {{- if .Values.etcdSecretName }}
+    - name: etcd_secret
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.etcdSecretName }}
+          key: secret
+    - name: etcd_endpoint
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.etcdSecretName }}
+          key: url
+    {{- end }}
+    - name: apikey
+      valueFrom:
+        secretKeyRef:
+          name: {{ include "ibm-portworx.operator-secret" . }}
+          key: api-key

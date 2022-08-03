@@ -1,0 +1,11 @@
+{{- if .Values.configNamespace }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ibmcloud-operator-config
+  namespace: {{ include "operator.operator-namespace" . }}
+  labels:
+    {{ include "operator.labels" . }}
+data:
+  namespace: {{ .Values.configNamespace }}
+{{- end }}

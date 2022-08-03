@@ -1,0 +1,27 @@
+# Default values for argocd-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+global:
+  ingressSubdomain: ""
+  tlsSecretName: ""
+  clusterType: ""
+  olmNamespace: ""
+  operatorNamespace: ""
+
+nameOverride: ""
+
+olmNamespace: ""
+operatorNamespace: ""
+
+createInstance: true
+
+controllerRbac: true
+
+namespaceScoped: false
+
+subscription:
+  source: redhat-operators
+  channel: stable
+  name: openshift-gitops-operator
+
+createdBy: ""

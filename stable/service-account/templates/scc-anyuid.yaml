@@ -1,0 +1,54 @@
+{{- if eq (include "service-account.isOpenShift" .) "true" -}}
+{{ $namespace := .Release.Namespace }}
+{{ $serviceAccount := include "service-account.name" . }}
+{{ $saName := printf "system:serviceaccount:%s:%s" $namespace $serviceAccount }}
+{{ $labels := include "service-account.labels" . }}
+{{- range .Values.sccs }}
+{{- if eq "anyuid" . }}
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "-3"
+    argocd.argoproj.io/sync-options: Validate=false
+    kubernetes.io/description: anyuid provides all features of the restricted SCC
+      but allows users to run with any UID and any GID.
+  name: {{ printf "%s-%s-%s" $namespace $serviceAccount . }}
+  labels:
+{{- $labels | nindent 4 }}
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: true
+allowPrivilegedContainer: false
+allowedCapabilities: null
+defaultAddCapabilities: null
+fsGroup:
+  type: RunAsAny
+groups:
+  - system:cluster-admins
+priority: 10
+readOnlyRootFilesystem: false
+requiredDropCapabilities:
+  - MKNOD
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: MustRunAs
+supplementalGroups:
+  type: RunAsAny
+users:
+  - {{ $saName }}
+volumes:
+  - configMap
+  - downwardAPI
+  - emptyDir
+  - persistentVolumeClaim
+  - projected
+  - secret
+{{- end }}
+{{- end }}
+{{- end }}

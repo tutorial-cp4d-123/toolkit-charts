@@ -1,0 +1,46 @@
+# Default values for argocd-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+global:
+  ingressSubdomain: ""
+  tlsSecretName: ""
+  clusterType: ""
+  olmNamespace: ""
+  operatorNamespace: ""
+
+nameOverride: ""
+
+olmNamespace: ""
+operatorNamespace: ""
+
+clusterType: "ocp4"
+
+ocpCatalog:
+  source: redhat-operators
+  channel: "4.6"
+  name: elasticsearch-operator
+operatorHub:
+  source: operatorhubio-catalog
+  channel: "4.6"
+  name: elasticsearch-operator
+
+createInstance: false
+namespaceInstance: ""
+
+spec:
+  managementState: Managed
+  nodeSpec:
+    image: >-
+      registry.redhat.io/openshift4/ose-logging-elasticsearch6@sha256:f6e6b28f6c1bc5c35303fbfce0c41daf2671acbe967423276b7fae0eac825202
+    resources:
+      limits:
+        memory: 1Gi
+      requests:
+        memory: 512Mi
+  nodes:
+    - nodeCount: 1
+      roles:
+        - client
+        - data
+        - master
+  redundancyPolicy: SingleRedundancy

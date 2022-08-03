@@ -1,0 +1,15 @@
+{{- $namespace := (include "operator.operator-namespace" .) -}}
+{{- $name := (printf "%s-elasticsearch" $namespace) -}}
+{{- if (and .Values.operatorNamespace (ne (include "operator.default-operator-namespace" .) .Values.operatorNamespace)) -}}
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  annotations:
+    helm.sh/hook-weight: "180"
+    argocd.argoproj.io/sync-wave: "180"
+  name: {{ $name }}
+  namespace: {{ $namespace }}
+spec:
+  targetNamespaces:
+    - {{ include "operator.operator-namespace" . }}
+{{- end -}}

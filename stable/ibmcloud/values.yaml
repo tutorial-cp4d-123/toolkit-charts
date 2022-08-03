@@ -1,0 +1,37 @@
+# Default values for configuration
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+global:
+  ingressSubdomain: ""
+  clusterType: ""
+  tlsSecretName: ""
+
+app: "garage-cloud-native-toolkit"
+group: "catalyst-tools"
+grouping: "garage-cloud-native-toolkit"
+
+
+# These values will be defaulted and can be overridden
+apiurl: "https://cloud.ibm.com"
+registry_url: "us.icr.io"
+region: ""
+registry_user: "iamapikey"
+# If not provided the registry_password will default to 
+registry_password: ""
+# cluster_type should be kubernetes or openshift
+cluster_type: "kubernetes"
+
+# These values are required
+server_url: ""
+
+# these values will be derived if not provided
+tls_secret_name: ""
+cluster_name: ""
+cluster_version: ""
+# if not provided the registry_namespace will default to the resource group
+registry_namespace: ""
+
+# if not provided the attributes will be skipped
+apikey: ""
+resource_group: ""
+ingress_subdomain: ""

@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "setup-job.fullname" . }}
+  labels:
+{{ include "setup-job.labels" . | indent 4 }}
+spec:
+    template:
+        spec:
+            serviceAccountName: {{ default "default" .Values.serviceAccountName }}
+            initContainers:
+              - name: {{ printf "wait-for-%s" (include "setup-job.name" .) }}
+                image: quay.io/ibmgaragecloud/alpine-curl
+                imagePullPolicy: IfNotPresent
+                command: ["sh"]
+                args:
+                  - "-c"
+                  - "until curl -Isf ${URL}; do echo \">>> waiting for ${URL}\"; sleep 90; done; echo \">>> Started\""
+                env:
+                - name: URL
+                  valueFrom:
+                    secretKeyRef:
+                      key: {{ .Values.secret.key }}
+                      name: {{ .Values.secret.name }}
+            containers:
+                - name: {{ include "setup-job.fullname" . }}
+                  image: quay.io/ibmgaragecloud/nodejs:latest
+                  imagePullPolicy: Always
+                  command: ["bash"]
+                  args:
+                    - "-c"
+                    - "npm i -g @ibmgaragecloud/cloud-native-toolkit-web-cli@${CLI_VERSION}; $(npm config get prefix)/bin/igc-web ${COMMAND} --inCluster -n ${NAMESPACE} --debug"
+                  env:
+                    - name: COMMAND
+                      value: {{ .Values.command }}
+                    - name: NAMESPACE
+                      valueFrom:
+                        fieldRef:
+                          fieldPath: metadata.namespace
+                    - name: CLI_VERSION
+                      value: {{ default "latest" .Values.cliVersion }}
+            restartPolicy: Never
+    backoffLimit: 4
